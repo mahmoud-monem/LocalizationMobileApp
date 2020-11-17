@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -35,14 +36,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   OpenPainter painter = new OpenPainter();
-  List<Item> items = List();
-  Item item;
+
   DatabaseReference itemRef;
+  double x = 0, y = 0;
 
   @override
   void initState() {
     super.initState();
-    item = Item(0.0, 0.0);
     final FirebaseDatabase database = FirebaseDatabase.instance; //Rather then just writing FirebaseDatabase(), get the instance.
     itemRef = database.reference().child('/');
     itemRef.onChildAdded.listen(_onEntryAdded);
@@ -51,18 +51,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _onEntryAdded(Event event) {
     setState(() {
-      items.add(Item.fromSnapshot(event.snapshot));
+      // items.add(Item.fromSnapshot(event.snapshot));
     });
   }
 
   _onEntryChanged(Event event) {
-    var old = items.singleWhere((entry) {
-      return entry.key == event.snapshot.key;
-    });
+    // var old = items.singleWhere((entry) {
+    //   return entry.key == event.snapshot.key;
+    // });
+
+    debugPrint(event.snapshot.key);
     setState(() {
-      item = items[items.indexOf(old)] = Item.fromSnapshot(event.snapshot);
-      painter.move(items[items.indexOf(old)].x, items[items.indexOf(old)].y);
+      this.x = 1.0 * event.snapshot.value['x'];
+      this.y = 1.0 * event.snapshot.value['y'];
+      this.painter.move(this.x, this.y);
     });
+
   }
 
   @override
@@ -73,34 +77,29 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.red[700],
       ),
       body: Stack(children: [
-        // Center(
-        //   child: Image.asset('asstes/images/SBME Map full.png'),
-        // ),
         Center(
-          child: Text(item.x.toString()),
+          child: Image.asset('assets/images/map.jpeg'),
         ),
         Center(
             child: Container(
               width: 400,
               height: 640,
               child: CustomPaint(
-                painter: painter,
+                painter: this.painter,
               ),
             )
         ),
+        Container(
+          alignment: Alignment.topRight,
+          child: Text('x: ' + this.x.toString() + ', y: ' + this.y.toString()),
+        )
       ]),
     );
   }
-
-  // void move(double x, double y) {
-  //   setState(() {
-  //     this.painter.move();
-  //   });
-  // }
 }
 
 class OpenPainter extends CustomPainter {
-  double y = 0, x = 0;
+  double y = 580, x = 217;
   @override
   void paint(Canvas canvas, Size size) {
     var paint1 = Paint()
@@ -119,26 +118,7 @@ class OpenPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 
   void move(double x, double y) {
-    this.y = y * 10;
-    this.x = 200 - 10 * x;
-  }
-}
-
-class Item {
-  String key;
-  double x, y;
-
-  Item(this.x, this.y);
-
-  Item.fromSnapshot(DataSnapshot snapshot)
-      : key = snapshot.key,
-        x = snapshot.value["x"],
-        y = snapshot.value["y"];
-
-  toJson() {
-    return {
-      "x": x,
-      "y": y,
-    };
+    this.y = 580 - y * 50;
+    this.x = 217 - x * 50;
   }
 }
