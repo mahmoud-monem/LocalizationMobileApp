@@ -38,12 +38,13 @@ class _MyHomePageState extends State<MyHomePage> {
   OpenPainter painter = new OpenPainter();
 
   DatabaseReference itemRef;
-  double x = 0, y = 0;
+  int x = 0, y = 0;
 
   @override
   void initState() {
     super.initState();
-    final FirebaseDatabase database = FirebaseDatabase.instance; //Rather then just writing FirebaseDatabase(), get the instance.
+    final FirebaseDatabase database = FirebaseDatabase
+        .instance; //Rather then just writing FirebaseDatabase(), get the instance.
     itemRef = database.reference().child('/');
     itemRef.onChildAdded.listen(_onEntryAdded);
     itemRef.onChildChanged.listen(_onEntryChanged);
@@ -62,11 +63,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
     debugPrint(event.snapshot.key);
     setState(() {
-      this.x = 1.0 * event.snapshot.value['x'];
-      this.y = 1.0 * event.snapshot.value['y'];
-      this.painter.move(this.x, this.y);
+      this.x = event.snapshot.value['x'];
+      this.y = event.snapshot.value['y'];
+      if (this.y > 10) {
+        if (this.y < 13) {
+          this.x = 1;
+          this.x += (this.y > 11) ? 1 : 0;
+          this.y = 5;
+        } else {
+          this.y = 7;
+          this.x = 1;
+        }
+      }
+      this.painter.move(1.0 * this.x, 1.0 * this.y);
     });
-
   }
 
   @override
@@ -82,13 +92,12 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Center(
             child: Container(
-              width: 400,
-              height: 640,
-              child: CustomPaint(
-                painter: this.painter,
-              ),
-            )
-        ),
+          width: 400,
+          height: 640,
+          child: CustomPaint(
+            painter: this.painter,
+          ),
+        )),
         Container(
           alignment: Alignment.topRight,
           child: Text('x: ' + this.x.toString() + ', y: ' + this.y.toString()),
